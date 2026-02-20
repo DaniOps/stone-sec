@@ -1,6 +1,8 @@
+from stone_sec.engine.scanner import discover_python_files
 import argparse
 import sys
 from pathlib import Path
+
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -60,11 +62,19 @@ def handle_review(args):
         print(f"[ERROR] Path does not exist: {target_path}")
         sys.exit(1)
 
-    print(f"Scanning: {target_path}")
-    print("Rule engine not implemented yet.")
+    python_files = discover_python_files(target_path)
+
+    if not python_files:
+        print("No Python files found.")
+        sys.exit(0)
+
+    print(f"Discovered {len(python_files)} Python file(s):")
+    for file in python_files:
+        print(f" - {file}")
+
+    print("\nRule engine not implemented yet.")
     print("0 findings.\n")
 
-    # Placeholder exit logic
     sys.exit(0)
 
 
