@@ -1,3 +1,6 @@
-user_input = "2 + 2"
-result = eval(user_input)
-print(result)
+import os
+import subprocess
+
+os.system("ls")
+subprocess.run("ls", shell=True)
+eval("2 + 2")

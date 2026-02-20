@@ -1,3 +1,4 @@
+from stone_sec.engine.rules.runner import run_rules
 from stone_sec.engine.parser import parse_python_file
 from stone_sec.engine.rules.eval_rule import EvalUsageRule
 from stone_sec.engine.scanner import discover_python_files
@@ -75,11 +76,11 @@ def handle_review(args):
     for file_path in python_files:
         tree = parse_python_file(file_path)
         if tree is None:
+            # Skip files with syntax errors or unreadable content
             continue
 
-        rule = EvalUsageRule(file_path)
-        rule.visit(tree)
-        findings.extend(rule.findings)
+        file_findings = run_rules(tree, file_path)
+        findings.extend(file_findings)
 
     if not findings:
         print("No security issues found.")
@@ -88,7 +89,8 @@ def handle_review(args):
     print(f"Found {len(findings)} issue(s):\n")
 
     for f in findings:
-        print(f"[{f.severity}] {f.title}")
+        print(f"[{str(f.severity)}] {f.title}")
+        print(f"Rule: {f.rule_id}")
         print(f"File: {f.file}")
         print(f"Line: {f.line}")
         print(f"Snippet: {f.snippet}\n")
