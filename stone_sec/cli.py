@@ -1,3 +1,5 @@
+from stone_sec.engine.parser import parse_python_file
+from stone_sec.engine.rules.eval_rule import EvalUsageRule
 from stone_sec.engine.scanner import discover_python_files
 import argparse
 import sys
@@ -68,12 +70,28 @@ def handle_review(args):
         print("No Python files found.")
         sys.exit(0)
 
-    print(f"Discovered {len(python_files)} Python file(s):")
-    for file in python_files:
-        print(f" - {file}")
+    findings = []
 
-    print("\nRule engine not implemented yet.")
-    print("0 findings.\n")
+    for file_path in python_files:
+        tree = parse_python_file(file_path)
+        if tree is None:
+            continue
+
+        rule = EvalUsageRule(file_path)
+        rule.visit(tree)
+        findings.extend(rule.findings)
+
+    if not findings:
+        print("No security issues found.")
+        sys.exit(0)
+
+    print(f"Found {len(findings)} issue(s):\n")
+
+    for f in findings:
+        print(f"[{f.severity}] {f.title}")
+        print(f"File: {f.file}")
+        print(f"Line: {f.line}")
+        print(f"Snippet: {f.snippet}\n")
 
     sys.exit(0)
 
