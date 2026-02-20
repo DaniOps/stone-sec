@@ -1,0 +1,2 @@
+[console_scripts]
+stone-sec = stone_sec.cli:main

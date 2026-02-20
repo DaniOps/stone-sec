@@ -1,0 +1,14 @@
+[project]
+name = "stone-sec"
+version = "0.1.0"
+description = "Local-first deterministic AI-enhanced security code review CLI for Python."
+authors = [{ name="Your Name" }]
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+stone-sec = "stone_sec.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
