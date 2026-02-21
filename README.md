@@ -23,6 +23,17 @@ stone-sec review path/ --format json
 ## AI Explanations (Optional)
 stone-sec review path/ --provider ollama
 
+## GitHub Actions (CI)
+
+Run Stone-Sec automatically in GitHub Actions to enforce security checks.
+
+```yaml
+- name: Run Stone-Sec
+  uses: DaniOps/stone-sec@v1
+  with:
+    path: .
+    fail_on: high
+
 ## Environment Check
 stone-sec doctor
 
