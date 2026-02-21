@@ -33,6 +33,7 @@ Run Stone-Sec automatically in GitHub Actions to enforce security checks.
   with:
     path: .
     fail_on: high
+```
 
 ## Environment Check
 stone-sec doctor
