@@ -174,7 +174,7 @@ def main():
         handle_review(args)
 
     elif args.command == "version":
-        handle_version()
+        handle_version(args)
 
     else:
         parser.print_help()
