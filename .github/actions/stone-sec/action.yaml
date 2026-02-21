@@ -1,0 +1,25 @@
+name: "Stone-Sec"
+description: "CI-safe Python security scanner with optional AI explanations"
+
+inputs:
+  path:
+    description: "Path to scan"
+    required: false
+    default: "."
+  fail_on:
+    description: "Fail CI on this severity (low|medium|high|critical)"
+    required: false
+    default: "high"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Stone-Sec
+      run: |
+        pip install stone-sec
+      shell: bash
+
+    - name: Run Stone-Sec
+      run: |
+        stone-sec review ${{ inputs.path }} --fail-on ${{ inputs.fail_on }}
+      shell: bash
