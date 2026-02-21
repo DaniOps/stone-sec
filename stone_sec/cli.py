@@ -1,3 +1,5 @@
+from stone_sec.llm.ollama_provider import OllamaProvider
+from stone_sec.llm.prompt import build_prompt
 from stone_sec.engine.rules.runner import run_rules
 from stone_sec.engine.parser import parse_python_file
 from stone_sec.engine.rules.eval_rule import EvalUsageRule
@@ -29,10 +31,11 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     review_parser.add_argument(
-        "--json",
-        action="store_true",
-        help="Output results in JSON format."
-    )
+    "--format",
+    choices=["text", "json"],
+    default="text",
+    help="Output format (text or json)",
+)
 
     review_parser.add_argument(
         "--fail-on",
@@ -42,12 +45,10 @@ def create_parser() -> argparse.ArgumentParser:
     )
 
     review_parser.add_argument(
-        "--provider",
-        type=str,
-        choices=["ollama", "openai", "anthropic"],
-        default="ollama",
-        help="LLM provider to use (default: ollama)."
-    )
+    "--provider",
+    choices=["ollama"],
+    help="LLM provider for enhanced explanations",
+)
 
     # Version command
     subparsers.add_parser(
@@ -59,6 +60,17 @@ def create_parser() -> argparse.ArgumentParser:
 
 
 def handle_review(args):
+    import sys
+    from pathlib import Path
+
+    from stone_sec.engine.severity import Severity
+    from stone_sec.engine.scanner import discover_python_files
+    from stone_sec.engine.parser import parse_python_file
+    from stone_sec.engine.rules.runner import run_rules
+    from stone_sec.llm.ollama_provider import OllamaProvider
+    from stone_sec.llm.prompt import build_prompt
+    from stone_sec.output.json_formatter import findings_to_json
+
     target_path = Path(args.path)
 
     if not target_path.exists():
@@ -68,11 +80,15 @@ def handle_review(args):
     python_files = discover_python_files(target_path)
 
     if not python_files:
-        print("No Python files found.")
+        if args.format == "json":
+            print(findings_to_json([]))
+        else:
+            print("No Python files found.")
         sys.exit(0)
 
     findings = []
 
+    # --- Deterministic detection phase ---
     for file_path in python_files:
         tree = parse_python_file(file_path)
         if tree is None:
@@ -81,34 +97,57 @@ def handle_review(args):
         findings.extend(run_rules(tree, file_path))
 
     if not findings:
-        print("No security issues found.")
+        if args.format == "json":
+            print(findings_to_json([]))
+        else:
+            print("No security issues found.")
         sys.exit(0)
 
-    print(f"Found {len(findings)} issue(s):\n")
+    # --- Optional LLM enhancement (never affects severity/exit) ---
+    provider = None
+    if getattr(args, "provider", None) == "ollama":
+        provider = OllamaProvider()
 
+    if provider:
+        for f in findings:
+            prompt = build_prompt(f)
+            result = provider.generate(prompt)
+
+            f.explanation = result.get("explanation")
+            f.exploit_scenario = result.get("exploit_scenario")
+            f.remediation = result.get("remediation")
+
+    # --- Output phase ---
+    if args.format == "json":
+        print(findings_to_json(findings))
+    else:
+        print(f"Found {len(findings)} issue(s):\n")
+
+        for f in findings:
+            print(f"[{str(f.severity)}] {f.title}")
+            print(f"Rule: {f.rule_id}")
+            print(f"File: {f.file}")
+            print(f"Line: {f.line}")
+            print(f"Snippet: {f.snippet}")
+
+            if f.explanation:
+                print(f"Explanation: {f.explanation}")
+            if f.exploit_scenario:
+                print(f"Exploit: {f.exploit_scenario}")
+            if f.remediation:
+                print(f"Fix: {f.remediation}")
+
+            print()
+
+    # --- CI fail-on logic (deterministic, unaffected by LLM/output) ---
     highest_severity = None
-
     for f in findings:
-        print(f"[{str(f.severity)}] {f.title}")
-        print(f"Rule: {f.rule_id}")
-        print(f"File: {f.file}")
-        print(f"Line: {f.line}")
-        print(f"Snippet: {f.snippet}\n")
-
         if highest_severity is None or f.severity.value > highest_severity.value:
             highest_severity = f.severity
 
-    # --- CI / fail-on logic ---
     if args.fail_on:
-        from stone_sec.engine.severity import Severity
-
         threshold = Severity.from_string(args.fail_on)
-
         if highest_severity and highest_severity.value >= threshold.value:
-            print(
-                f"Failing due to severity threshold: "
-                f"{highest_severity} >= {threshold}"
-            )
             sys.exit(1)
 
     sys.exit(0)
