@@ -1,6 +1,6 @@
 [project]
 name = "stone-sec"
-version = "1.0.1"
+version = "1.0.2"
 description = "Local-first deterministic AI-enhanced security code review CLI for Python."
 authors = [{ name="Your Name" }]
 requires-python = ">=3.11"
