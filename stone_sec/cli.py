@@ -76,11 +76,9 @@ def handle_review(args):
     for file_path in python_files:
         tree = parse_python_file(file_path)
         if tree is None:
-            # Skip files with syntax errors or unreadable content
             continue
 
-        file_findings = run_rules(tree, file_path)
-        findings.extend(file_findings)
+        findings.extend(run_rules(tree, file_path))
 
     if not findings:
         print("No security issues found.")
@@ -88,12 +86,30 @@ def handle_review(args):
 
     print(f"Found {len(findings)} issue(s):\n")
 
+    highest_severity = None
+
     for f in findings:
         print(f"[{str(f.severity)}] {f.title}")
         print(f"Rule: {f.rule_id}")
         print(f"File: {f.file}")
         print(f"Line: {f.line}")
         print(f"Snippet: {f.snippet}\n")
+
+        if highest_severity is None or f.severity.value > highest_severity.value:
+            highest_severity = f.severity
+
+    # --- CI / fail-on logic ---
+    if args.fail_on:
+        from stone_sec.engine.severity import Severity
+
+        threshold = Severity.from_string(args.fail_on)
+
+        if highest_severity and highest_severity.value >= threshold.value:
+            print(
+                f"Failing due to severity threshold: "
+                f"{highest_severity} >= {threshold}"
+            )
+            sys.exit(1)
 
     sys.exit(0)
 
