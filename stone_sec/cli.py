@@ -1,3 +1,4 @@
+from importlib.metadata import version, PackageNotFoundError
 from stone_sec.llm.ollama_provider import OllamaProvider
 from stone_sec.llm.prompt import build_prompt
 from stone_sec.engine.rules.runner import run_rules
@@ -153,9 +154,12 @@ def handle_review(args):
     sys.exit(0)
 
 
-def handle_version():
-    print("stone-sec version 0.1.0")
-    sys.exit(0)
+def handle_version(args):
+    try:
+        v = version("stone-sec")
+    except PackageNotFoundError:
+        v = "unknown"
+    print(f"stone-sec version {v}")
 
 
 def main():
