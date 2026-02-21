@@ -16,7 +16,7 @@ runs:
   steps:
     - name: Install Stone-Sec (local)
       run: |
-        pip install -e .
+        pip install stone-sec
       shell: bash
 
     - name: Run Stone-Sec
