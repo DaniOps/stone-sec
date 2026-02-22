@@ -3,15 +3,19 @@ from typing import List, Type
 import ast
 
 from stone_sec.models.finding import Finding
-from stone_sec.engine.rules.eval_rule import EvalUsageRule
-from stone_sec.engine.rules.os_system_rule import OsSystemRule
-from stone_sec.engine.rules.subprocess_shell_rule import SubprocessShellRule
+from stone_sec.engine.rules.eval_rule import EvalUsageRule, PickleLoadsRule, WeakHashRule
+from stone_sec.engine.rules.os_system_rule import OsSystemRule, TempfileMktempRule
+from stone_sec.engine.rules.subprocess_shell_rule import SubprocessShellRule, YamlUnsafeLoadRule
 
 
 RULES: List[Type[ast.NodeVisitor]] = [
     EvalUsageRule,
     OsSystemRule,
     SubprocessShellRule,
+    PickleLoadsRule,
+    YamlUnsafeLoadRule,
+    TempfileMktempRule,
+    WeakHashRule,
 ]
 
 

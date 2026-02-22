@@ -8,8 +8,8 @@ Local-first, CI-safe Python security scanner with optional AI explanations.
 - No cloud dependency
 - AI used only for explanation, never decisions
 
-## Installation
-pip install -e .
+## Development Installation
+pip install stone-sec
 
 ## Basic Usage
 stone-sec review path/
