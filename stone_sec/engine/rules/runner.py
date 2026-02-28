@@ -22,6 +22,12 @@ from stone_sec.engine.rules.network_tls_rules import (
     SSLUnverifiedContextRule,
 )
 from stone_sec.engine.rules.insecure_protocol_rules import FTPUsageRule, TelnetUsageRule
+from stone_sec.engine.rules.dynamic_import_rules import (
+    BuiltinDynamicImportRule,
+    ImportlibDynamicImportRule,
+)
+from stone_sec.engine.rules.sql_injection_rules import SQLStringInterpolationRule
+from stone_sec.engine.rules.ssl_context_rules import SSLContextWeakConfigRule
 
 
 RULES: List[Type[ast.NodeVisitor]] = [
@@ -45,6 +51,10 @@ RULES: List[Type[ast.NodeVisitor]] = [
     SSLUnverifiedContextRule,
     TelnetUsageRule,
     FTPUsageRule,
+    BuiltinDynamicImportRule,
+    ImportlibDynamicImportRule,
+    SQLStringInterpolationRule,
+    SSLContextWeakConfigRule,
 ]
 
 
